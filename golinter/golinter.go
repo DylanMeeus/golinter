@@ -16,13 +16,31 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/lint"
+	lint "github.com/DylanMeeus/golinter"
 )
 
 var (
-	minConfidence = flag.Float64("min_confidence", 0.8, "minimum confidence of a problem to print it")
-	setExitStatus = flag.Bool("set_exit_status", false, "set exit status to 1 if any issues are found")
-	suggestions   int
+	minConfidence    = flag.Float64("min_confidence", 0.8, "minimum confidence of a problem to print it")
+	setExitStatus    = flag.Bool("set_exit_status", false, "set exit status to 1 if any issues are found")
+	exported         = flag.Bool("lint_exported", true, "Lint exported types")
+	packageComments  = flag.Bool("lint_package_comments", true, "Lint package comments")
+	imports          = flag.Bool("lint_imports", true, "Lint import statements")
+	blankImports     = flag.Bool("lint_blank_imports", true, "Lint blank imports")
+	names            = flag.Bool("lint_names", true, "Lint names")
+	varDecls         = flag.Bool("lint_vardecls", true, "Lint variable declarations")
+	elses            = flag.Bool("lint_elses", true, "Lint else statements")
+	ranges           = flag.Bool("lint_ranges", true, "Lint range statements")
+	errorf           = flag.Bool("lint_errorf", true, "Lint errorf")
+	errors           = flag.Bool("lint_errors", true, "Lint errors")
+	errorStrings     = flag.Bool("lint_error_strings", true, "Lint error strings")
+	receiverNames    = flag.Bool("lint_receiver_names", true, "Lint receiver names")
+	incDec           = flag.Bool("lint_inc_dec", true, "Lint variable increments and decrements") 
+	errorReturn      = flag.Bool("lint_error_returns", true, "Lint error returns")
+	unexportedReturn = flag.Bool("lint_unexported_return", true, "Lint unexported returns")
+	timeNames        = flag.Bool("lint_time_names", true, "lint time names")
+	contextKeyTypes  = flag.Bool("lint_context_key_types", true, "lint context key types")
+	contextArgs      = flag.Bool("lint_context_args", true, "lint context args")
+	suggestions      int
 )
 
 func usage() {
@@ -110,7 +128,26 @@ func lintFiles(filenames ...string) {
 		files[filename] = src
 	}
 
-	l := new(lint.Linter)
+	l := lint.Linter{
+		LintExported: *exported,
+		LintPackageComments: *packageComments,
+		LintImports: *imports,
+		LintBlankImports: *blankImports,
+		LintNames: *names,
+		LintVarDecls: *varDecls,
+		LintElses: *elses,
+		LintRanges: *ranges,
+		LintErrorf: *errorf,
+		LintErrors: *errors,
+		LintErrorStrings: *errorStrings,
+		LintReceiverNames: *receiverNames,
+		LintIncDec: *incDec,
+		LintErrorReturn: *errorReturn,
+		LintUnexportedReturn: *unexportedReturn,
+		LintTimeNames: *timeNames,
+		LintContextKeyTypes: *contextKeyTypes,
+		LintContextArgs: *contextArgs,
+	}
 	ps, err := l.LintFiles(files)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)

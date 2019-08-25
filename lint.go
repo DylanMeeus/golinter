@@ -31,6 +31,24 @@ const styleGuideBase = "https://golang.org/wiki/CodeReviewComments"
 
 // A Linter lints Go source code.
 type Linter struct {
+	LintExported         bool // run linter on exported types.
+	LintPackageComments  bool
+	LintImports          bool
+	LintBlankImports     bool
+	LintNames            bool
+	LintVarDecls         bool
+	LintElses            bool
+	LintRanges           bool
+	LintErrorf           bool
+	LintErrors           bool
+	LintErrorStrings     bool
+	LintReceiverNames    bool
+	LintIncDec           bool
+	LintErrorReturn      bool
+	LintUnexportedReturn bool
+	LintTimeNames        bool
+	LintContextKeyTypes  bool
+	LintContextArgs      bool
 }
 
 // Problem represents a problem in some source code.
@@ -80,6 +98,30 @@ func (l *Linter) Lint(filename string, src []byte) ([]Problem, error) {
 	return l.LintFiles(map[string][]byte{filename: src})
 }
 
+// Create a boolean array out of the lint options
+func (l *Linter) lintSet() [18]bool {
+	return [18]bool{
+		l.LintExported,
+		l.LintPackageComments,
+		l.LintImports,
+		l.LintBlankImports,
+		l.LintNames,
+		l.LintVarDecls,
+		l.LintElses,
+		l.LintRanges,
+		l.LintErrorf,
+		l.LintErrors,
+		l.LintErrorStrings,
+		l.LintReceiverNames,
+		l.LintIncDec,
+		l.LintErrorReturn,
+		l.LintUnexportedReturn,
+		l.LintTimeNames,
+		l.LintContextKeyTypes,
+		l.LintContextArgs,
+	}
+}
+
 // LintFiles lints a set of files of a single package.
 // The argument is a map of filename to source.
 func (l *Linter) LintFiles(files map[string][]byte) ([]Problem, error) {
@@ -112,7 +154,7 @@ func (l *Linter) LintFiles(files map[string][]byte) ([]Problem, error) {
 	if len(pkg.files) == 0 {
 		return nil, nil
 	}
-	return pkg.lint(), nil
+	return pkg.lint(l.lintSet()), nil
 }
 
 var (
@@ -149,7 +191,7 @@ type pkg struct {
 	problems []Problem
 }
 
-func (p *pkg) lint() []Problem {
+func (p *pkg) lint(flags [18]bool) []Problem {
 	if err := p.typeCheck(); err != nil {
 		/* TODO(dsymonds): Consider reporting these errors when golint operates on entire packages.
 		if e, ok := err.(types.Error); ok {
@@ -173,7 +215,7 @@ func (p *pkg) lint() []Problem {
 	p.main = p.isMain()
 
 	for _, f := range p.files {
-		f.lint()
+		f.lint(flags)
 	}
 
 	sort.Sort(byPosition(p.problems))
@@ -192,25 +234,35 @@ type file struct {
 
 func (f *file) isTest() bool { return strings.HasSuffix(f.filename, "_test.go") }
 
-func (f *file) lint() {
-	f.lintPackageComment()
-	f.lintImports()
-	f.lintBlankImports()
-	f.lintExported()
-	f.lintNames()
-	f.lintVarDecls()
-	f.lintElses()
-	f.lintRanges()
-	f.lintErrorf()
-	f.lintErrors()
-	f.lintErrorStrings()
-	f.lintReceiverNames()
-	f.lintIncDec()
-	f.lintErrorReturn()
-	f.lintUnexportedReturn()
-	f.lintTimeNames()
-	f.lintContextKeyTypes()
-	f.lintContextArgs()
+func (f *file) lint(flags [18]bool) {
+	funcs := []func(){
+		f.lintPackageComment,
+		f.lintImports,
+		f.lintBlankImports,
+		f.lintExported,
+		f.lintNames,
+		f.lintVarDecls,
+		f.lintElses,
+		f.lintRanges,
+		f.lintErrorf,
+		f.lintErrors,
+		f.lintErrorStrings,
+		f.lintReceiverNames,
+		f.lintIncDec,
+		f.lintErrorReturn,
+		f.lintUnexportedReturn,
+		f.lintTimeNames,
+		f.lintContextKeyTypes,
+		f.lintContextArgs,
+	}
+	if len(funcs) != len(flags) {
+		panic("Not enough flags registered") // this should never happen
+	}
+	for i,b := range flags {
+		if b {
+			funcs[i]()
+		}
+	}
 }
 
 type link string
