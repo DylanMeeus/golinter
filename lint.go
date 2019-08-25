@@ -51,6 +51,7 @@ type Linter struct {
 	LintContextArgs      bool
 }
 
+NewLinter will create an instance of linter with all checks enabled
 func NewLinter() *Linter {
 	return &Linter{
 		LintExported:         true, // run linter on exported types.
