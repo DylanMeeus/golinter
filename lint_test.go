@@ -26,7 +26,7 @@ import (
 var lintMatch = flag.String("lint.match", "", "restrict testdata matches to this pattern")
 
 func TestAll(t *testing.T) {
-	l := new(Linter)
+	l := NewLinter()
 	rx, err := regexp.Compile(*lintMatch)
 	if err != nil {
 		t.Fatalf("Bad -lint.match value %q: %v", *lintMatch, err)

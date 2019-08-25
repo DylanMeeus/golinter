@@ -51,6 +51,29 @@ type Linter struct {
 	LintContextArgs      bool
 }
 
+func NewLinter() *Linter {
+	return &Linter{
+		LintExported:         true, // run linter on exported types.
+		LintPackageComments:  true,
+		LintImports:          true,
+		LintBlankImports:     true,
+		LintNames:            true,
+		LintVarDecls:         true,
+		LintElses:            true,
+		LintRanges:           true,
+		LintErrorf:           true,
+		LintErrors:           true,
+		LintErrorStrings:     true,
+		LintReceiverNames:    true,
+		LintIncDec:           true,
+		LintErrorReturn:      true,
+		LintUnexportedReturn: true,
+		LintTimeNames:        true,
+		LintContextKeyTypes:  true,
+		LintContextArgs:      true,
+	}
+}
+
 // Problem represents a problem in some source code.
 type Problem struct {
 	Position   token.Position // position in source file
@@ -236,10 +259,10 @@ func (f *file) isTest() bool { return strings.HasSuffix(f.filename, "_test.go") 
 
 func (f *file) lint(flags [18]bool) {
 	funcs := []func(){
+		f.lintExported,
 		f.lintPackageComment,
 		f.lintImports,
 		f.lintBlankImports,
-		f.lintExported,
 		f.lintNames,
 		f.lintVarDecls,
 		f.lintElses,
@@ -258,7 +281,7 @@ func (f *file) lint(flags [18]bool) {
 	if len(funcs) != len(flags) {
 		panic("Not enough flags registered") // this should never happen
 	}
-	for i,b := range flags {
+	for i, b := range flags {
 		if b {
 			funcs[i]()
 		}
